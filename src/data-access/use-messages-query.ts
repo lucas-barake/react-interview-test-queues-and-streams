@@ -192,7 +192,7 @@ export const useMessagesQuery = () => {
       Effect.gen(function* () {
         const sleepFor = yield* Random.nextRange(1_000, 2_500);
 
-        yield* Effect.sleep(sleepFor);
+        yield* Effect.sleep(`${sleepFor} millis`);
 
         return sampleMessages;
       }).pipe(Effect.runPromise),
