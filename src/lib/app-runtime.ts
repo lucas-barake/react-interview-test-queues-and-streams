@@ -16,6 +16,4 @@ const SpansExporterLive = webSdkLayer((): Configuration => {
   };
 });
 
-export const AppRuntime = ManagedRuntime.make(
-  Layer.mergeAll(SpansExporterLive, Logger.replace(Logger.defaultLogger, Logger.prettyLogger())),
-);
+export const AppRuntime = ManagedRuntime.make(Layer.mergeAll(SpansExporterLive, Logger.pretty));

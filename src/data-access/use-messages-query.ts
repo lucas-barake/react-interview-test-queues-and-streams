@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Message, MessageId } from "../types/message";
-import { Array, DateTime, Duration, Effect, Random } from "effect";
+import { Array, DateTime, Effect, Random } from "effect";
 import { queryClient, Updater } from "../lib/query-client";
 
 const sampleMessageBodies = [
@@ -40,7 +40,9 @@ const sampleMessages = Array.makeBy(30, (i) => ({
   id: MessageId.make(`${i + 1}`),
   body: sampleMessageBodies[i],
   createdAt: DateTime.unsafeMake("2024-03-20T10:00:00Z").pipe(
-    DateTime.addDuration(Duration.minutes(i * 2)),
+    DateTime.add({
+      minutes: i * 2,
+    }),
   ),
   readAt: null,
 }));
