@@ -1,6 +1,8 @@
 import { QueryClient } from "@tanstack/react-query";
 import { Duration } from "effect";
 
+export type Updater<T> = T | ((cachedData: T) => T);
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

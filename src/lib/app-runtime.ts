@@ -1,4 +1,4 @@
-import { ManagedRuntime } from "effect";
+import { Layer, Logger, ManagedRuntime } from "effect";
 import { type Configuration, layer as webSdkLayer } from "@effect/opentelemetry/WebSdk";
 import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-web";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
@@ -16,4 +16,6 @@ const SpansExporterLive = webSdkLayer((): Configuration => {
   };
 });
 
-export const AppRuntime = ManagedRuntime.make(SpansExporterLive);
+export const AppRuntime = ManagedRuntime.make(
+  Layer.mergeAll(SpansExporterLive, Logger.replace(Logger.defaultLogger, Logger.prettyLogger())),
+);
