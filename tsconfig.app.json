@@ -16,6 +16,7 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+    "exactOptionalPropertyTypes": true,
 
     /* Linting */
     "strict": true,
