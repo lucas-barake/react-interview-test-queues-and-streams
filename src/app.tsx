@@ -1,8 +1,8 @@
-import { ChatContainer } from "./components/chat";
+import { LiveLayer } from "@/lib/services/live-layer.ts";
 import { RuntimeProvider } from "@/lib/use-runtime.tsx";
 import { ManagedRuntime } from "effect";
-import { LiveLayer } from "@/lib/services/live-layer.ts";
 import React from "react";
+import { ChatContainer } from "./components/chat";
 
 function App() {
   const runtime = React.useMemo(() => ManagedRuntime.make(LiveLayer), []);

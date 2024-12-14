@@ -1,7 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-import { Message, MessageId } from "../types/message";
-import { Array, DateTime, Effect, Random } from "effect";
-import { queryClient, Updater } from "../lib/query-client";
+import { NetworkMonitor } from "@/lib/services/network-monitor.ts";
+import { Message, MessageId } from "@/types/message.ts";
+import { Array, Chunk, DateTime, Effect, Random, Schedule } from "effect";
 
 const sampleMessageBodies = [
   "Hey there! How are you doing today?",
@@ -47,23 +46,33 @@ const sampleMessages = Array.makeBy(30, (i) => ({
   readAt: null,
 }));
 
-export namespace MessagesQuery {
-  const makeQueryKey = () => ["messages"] as const;
+export class MessagesService extends Effect.Service<MessagesService>()("MessagesService", {
+  accessors: true,
+  dependencies: [NetworkMonitor.Default],
+  effect: Effect.gen(function* () {
+    const networkMonitor = yield* NetworkMonitor;
 
-  export const useMessagesQuery = () => {
-    return useQuery({
-      queryKey: makeQueryKey(),
-      queryFn: () =>
+    return {
+      getMessages: () =>
         Effect.gen(function* () {
           const sleepFor = yield* Random.nextRange(1_000, 2_500);
-
           yield* Effect.sleep(`${sleepFor} millis`);
-
           return sampleMessages;
-        }).pipe(Effect.runPromise),
-    });
-  };
+        }),
 
-  export const setQueryData = (updater: Updater<Message[]>) =>
-    queryClient.setQueryData(makeQueryKey(), updater);
-}
+      sendMarkAsReadBatch: (batch: Chunk.Chunk<Message["id"]>) =>
+        Effect.gen(function* () {
+          const sleepFor = yield* Random.nextRange(1_000, 2_500);
+          yield* Effect.zipRight(
+            Effect.sleep(`${sleepFor} millis`),
+            Effect.tryPromise(() => Promise.resolve(batch)),
+          );
+
+          yield* Effect.log(`Batched: ${Chunk.join(batch, ", ")}`);
+        }).pipe(
+          networkMonitor.latch.whenOpen,
+          Effect.retry({ times: 3, schedule: Schedule.exponential("500 millis", 2) }),
+        ),
+    };
+  }),
+}) {}

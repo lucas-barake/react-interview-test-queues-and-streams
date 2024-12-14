@@ -1,14 +1,14 @@
+import { MessagesOperations } from "@/data-access/messages/namespace.ts";
 import { Message } from "@/types/message";
-import { MessageBubble } from "./message-bubble";
 import * as React from "react";
-import { useMarkMessagesAsRead } from "@/data-access/use-mark-messages-as-read.ts";
+import { MessageBubble } from "./message-bubble";
 
 type Props = {
   messages: Message[];
 };
 
 export const MessageList: React.FC<Props> = ({ messages }) => {
-  const { observer } = useMarkMessagesAsRead(messages);
+  const { observer } = MessagesOperations.useMarkMessagesAsRead(messages);
 
   return (
     <div className="flex flex-col gap-4 p-4">

@@ -1,8 +1,8 @@
+import { cn } from "@/lib/utils";
 import { Message } from "@/types/message";
+import { DateTime } from "effect";
 import { CheckCheckIcon } from "lucide-react";
 import React from "react";
-import { cn } from "@/lib/utils";
-import { DateTime } from "effect";
 
 type Props = {
   message: Message;
@@ -20,7 +20,7 @@ export const MessageBubble = React.forwardRef<
         <div className="mt-1 flex items-center justify-end gap-1">
           <span className="text-xs text-muted-foreground">
             {message.createdAt.pipe(
-              DateTime.format({
+              DateTime.formatLocal({
                 hour: "2-digit",
                 minute: "2-digit",
               }),

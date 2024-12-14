@@ -1,6 +1,8 @@
+import { ManagedRuntime } from "effect";
 import React from "react";
 import type { LiveManagedRuntime } from "./services/live-layer.ts";
 
+export type RuntimeContext = ManagedRuntime.ManagedRuntime.Context<LiveManagedRuntime>;
 const RuntimeContext = React.createContext<LiveManagedRuntime | null>(null);
 
 export const RuntimeProvider: React.FC<{
