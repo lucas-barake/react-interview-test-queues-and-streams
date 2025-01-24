@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/cn.ts";
 import { Message } from "@/types/message";
 import { DateTime } from "effect";
 import { CheckCheckIcon } from "lucide-react";

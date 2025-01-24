@@ -1,6 +1,7 @@
+import { RuntimeContext } from "@/lib/runtime/runtime-context.tsx";
+import { useRuntime } from "@/lib/runtime/use-runtime.tsx";
 import { Effect, Exit, Fiber, Stream, SubscriptionRef } from "effect";
 import * as React from "react";
-import { RuntimeContext, useRuntime } from "./use-runtime.tsx";
 
 /**
  * A hook to subscribe to an Effect Stream
@@ -20,25 +21,23 @@ export const useRxSubscribe = <A, E, R extends RuntimeContext>(
   const memoizedStream = React.useMemo(() => stream, []);
 
   React.useEffect(() => {
-    const subscribable = Effect.gen(function* () {
-      const unwrapped = Effect.isEffect(memoizedStream)
-        ? memoizedStream.pipe(Stream.unwrap)
-        : memoizedStream;
+    const subscribable = Effect.isEffect(memoizedStream)
+      ? Stream.unwrap(memoizedStream)
+      : memoizedStream;
 
-      return yield* unwrapped.pipe(
-        Stream.tap((val) =>
-          Effect.sync(() => {
-            setValue(val);
-            onNextRef.current(val);
-          }),
-        ),
-        Stream.runDrain,
-        Effect.forever,
-        Effect.forkDaemon,
-      );
-    });
+    const subscription = subscribable.pipe(
+      Stream.tap((val) =>
+        Effect.sync(() => {
+          setValue(val);
+          onNextRef.current(val);
+        }),
+      ),
+      Stream.runDrain,
+      Effect.forever,
+      Effect.forkDaemon,
+    );
 
-    runtime.runCallback(subscribable, {
+    runtime.runCallback(subscription, {
       onExit: (exit) => {
         if (Exit.isSuccess(exit)) {
           fiberRef.current = exit.value;

@@ -63,6 +63,7 @@ export class MessagesService extends Effect.Service<MessagesService>()("Messages
       sendMarkAsReadBatch: (batch: Chunk.Chunk<Message["id"]>) =>
         Effect.gen(function* () {
           const sleepFor = yield* Random.nextRange(1_000, 2_500);
+
           yield* Effect.zipRight(
             Effect.sleep(`${sleepFor} millis`),
             Effect.tryPromise(() => Promise.resolve(batch)),

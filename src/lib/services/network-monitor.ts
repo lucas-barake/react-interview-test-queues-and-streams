@@ -17,7 +17,6 @@ export class NetworkMonitor extends Effect.Service<NetworkMonitor>()("NetworkMon
         ),
       ),
       Stream.runDrain,
-      Effect.forever,
       Effect.forkDaemon,
     );
 

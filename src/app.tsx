@@ -1,5 +1,5 @@
+import { RuntimeProvider } from "@/lib/runtime/runtime-provider.tsx";
 import { LiveLayer } from "@/lib/services/live-layer.ts";
-import { RuntimeProvider } from "@/lib/use-runtime.tsx";
 import { ManagedRuntime } from "effect";
 import React from "react";
 import { ChatContainer } from "./components/chat";

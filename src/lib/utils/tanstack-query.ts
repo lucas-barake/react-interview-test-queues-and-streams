@@ -1,4 +1,3 @@
-import { RuntimeContext, useRuntime } from "@/lib/use-runtime.tsx";
 import {
   QueryClient,
   QueryFunction,
@@ -12,7 +11,10 @@ import {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { Duration, Effect } from "effect";
+import { DurationInput } from "effect/Duration";
 import React from "react";
+import { RuntimeContext } from "../runtime/runtime-context.tsx";
+import { useRuntime } from "../runtime/use-runtime.tsx";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,7 +34,11 @@ const useRunner = () => {
   return React.useCallback(
     <A, E, R extends RuntimeContext>(span: string) =>
       (effect: Effect.Effect<A, E, R>): Promise<A> =>
-        effect.pipe(Effect.withSpan(span), runtime.runPromise),
+        effect.pipe(
+          Effect.withSpan(span),
+          Effect.tapErrorCause(Effect.logError),
+          runtime.runPromise,
+        ),
     [runtime.runPromise],
   );
 };
@@ -51,10 +57,6 @@ type EffectfulMutationOptions<
 > & {
   mutationKey: QueryKey;
   mutationFn: (variables: TVariables) => Effect.Effect<TData, TError, R>;
-  toastifyErrors?: boolean;
-  toastifySuccess?: {
-    type: "deleted" | "updated" | "removed" | "renamed";
-  };
 };
 
 export function useEffectMutation<
@@ -98,11 +100,12 @@ type EffectfulQueryOptions<
   TPageParam = never,
 > = Omit<
   UseQueryOptions<TData, Error, TData, TQueryKey>,
-  "queryKey" | "queryFn" | "retry" | "retryDelay" | "retryOnMount"
+  "queryKey" | "queryFn" | "retry" | "retryDelay" | "staleTime" | "gcTime"
 > & {
   queryKey: TQueryKey;
   queryFn: EffectfulQueryFunction<TData, TError, R, TQueryKey, TPageParam> | typeof skipToken;
-  toastifyErrors?: boolean;
+  staleTime?: DurationInput;
+  gcTime?: DurationInput;
 };
 
 export function useEffectQuery<
@@ -110,7 +113,11 @@ export function useEffectQuery<
   TError extends EffectfulError,
   R extends RuntimeContext,
   TQueryKey extends QueryKey = QueryKey,
->(options: EffectfulQueryOptions<TData, TError, R, TQueryKey>): UseQueryResult<TData, Error> {
+>({
+  gcTime,
+  staleTime,
+  ...options
+}: EffectfulQueryOptions<TData, TError, R, TQueryKey>): UseQueryResult<TData, Error> {
   const effectRunner = useRunner();
   const [spanName] = options.queryKey;
 
@@ -124,8 +131,12 @@ export function useEffectQuery<
     [effectRunner, spanName, options],
   );
 
-  return useQuery<TData, Error, TData, TQueryKey>({
+  const queryOptions: UseQueryOptions<TData, Error, TData, TQueryKey> = {
     ...options,
     queryFn: options.queryFn === skipToken ? skipToken : queryFn,
-  });
+    ...(staleTime !== undefined && { staleTime: Duration.toMillis(staleTime) }),
+    ...(gcTime !== undefined && { gcTime: Duration.toMillis(gcTime) }),
+  };
+
+  return useQuery(queryOptions);
 }

@@ -1,4 +1,4 @@
-import { MessagesOperations } from "@/data-access/messages/namespace.ts";
+import { MessagesOperations } from "@/lib/services/messages/namespace";
 import { Message } from "@/types/message";
 import * as React from "react";
 import { MessageBubble } from "./message-bubble";

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { MessagesOperations } from "@/data-access/messages/namespace.ts";
+import { MessagesOperations } from "@/lib/services/messages/namespace";
 import { Message } from "@/types/message.ts";
 import { UseQueryResult } from "@tanstack/react-query";
 import { AlertCircle } from "lucide-react";

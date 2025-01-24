@@ -1,22 +1,19 @@
-import { MessagesService } from "@/data-access/messages/service.ts";
-import { useEffectQuery } from "@/lib/query-client.ts";
-import { createQueryDataHelpers, createQueryKeyMaker } from "@/lib/query-data-helpers.ts";
-import { useRuntime } from "@/lib/use-runtime.tsx";
+import { useRuntime } from "@/lib/runtime/use-runtime.tsx";
+import { MessagesService } from "@/lib/services/messages/service";
+import { createQueryDataHelpers, createQueryKey } from "@/lib/utils/query-data-helpers.ts";
+import { useEffectQuery } from "@/lib/utils/tanstack-query.ts";
 import { Message } from "@/types/message.ts";
 import { Array, Chunk, DateTime, Effect, Fiber, Option, Queue, Stream } from "effect";
 import React from "react";
 
 export namespace MessagesOperations {
-  const messagesQueryKey = createQueryKeyMaker("MessagesOperations.useMessagesQuery")(false);
-  const messagesQueryData = createQueryDataHelpers<Message[]>(() => messagesQueryKey);
+  const messagesQueryKey = createQueryKey("MessagesOperations.useMessagesQuery");
+  const messagesQueryData = createQueryDataHelpers<Message[]>(messagesQueryKey);
   export const useMessagesQuery = () => {
     return useEffectQuery({
-      queryKey: messagesQueryKey,
-      queryFn: () =>
-        Effect.gen(function* () {
-          const service = yield* MessagesService;
-          return yield* service.getMessages();
-        }),
+      queryKey: messagesQueryKey(),
+      queryFn: () => MessagesService.use((service) => service.getMessages()),
+      staleTime: "6.5 millis",
     });
   };
 
@@ -50,7 +47,7 @@ export namespace MessagesOperations {
     const offer = React.useCallback(
       (id: Message["id"]) => {
         queue.current.unsafeOffer(id);
-        messagesQueryData.setData((messages) => {
+        messagesQueryData.setData(undefined, (messages) => {
           const msgIndex = messages.findIndex((msg) => msg.id === id);
           if (msgIndex !== -1) {
             const existingMessage = messages[msgIndex];
